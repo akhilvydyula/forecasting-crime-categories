@@ -1,0 +1,13 @@
+# Core ML platform — https://pypi.org/project/sitaka-api/
+sitaka-api[deploy,parquet]>=0.1.0
+
+# Analytics application
+streamlit>=1.33
+plotly>=5.20
+pandas>=2.0
+numpy>=1.24
+scipy>=1.11
+pyyaml>=6.0
+
+# Optional: Kaggle dataset download
+kaggle>=1.6

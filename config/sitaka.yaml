@@ -1,0 +1,32 @@
+project_name: crimecast-enterprise
+task: tabular_classification
+artifacts_dir: sitaka_artifacts
+data:
+  source: data/train_modeling.csv
+  format: csv
+  target: Crime_Category
+  test_size: 0.2
+  random_state: 42
+exploration:
+  enabled: true
+  max_correlation_columns: 40
+  report_name: crimecast_eda.md
+automl:
+  enabled_models:
+    - random_forest
+    - extra_trees
+    - gradient_boosting
+    - linear
+  n_trials: 12
+  timeout_seconds: null
+  metric: null
+  cv_folds: 3
+  max_rows: 15000
+mlflow:
+  enabled: true
+  experiment_name: crimecast-cbo
+  tracking_uri: file:./mlruns
+deployment:
+  framework: streamlit
+  app_name: crimecast_model_service
+  output_dir: sitaka_deployment
