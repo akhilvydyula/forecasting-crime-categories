@@ -16,7 +16,7 @@ from sitaka_api.services.workflows import (
 )
 from sitaka_api.sdk import SitakaClient
 
-from crimecast.data import project_root
+from crimecast.data import artifacts_dir, model_bundle_dir, project_root
 from crimecast.features import prepare_features_for_sitaka
 
 
@@ -33,6 +33,13 @@ def default_config_path() -> Path:
     return project_root() / "config" / "sitaka.yaml"
 
 
+def _resolve_artifacts_path(config: SitakaConfig) -> Path:
+    configured = Path(config.artifacts_dir)
+    if configured.is_absolute():
+        return configured
+    return project_root() / configured
+
+
 def ensure_modeling_dataset() -> Path:
     return prepare_features_for_sitaka()
 
@@ -40,12 +47,21 @@ def ensure_modeling_dataset() -> Path:
 def load_or_create_config(config_path: Path | None = None) -> SitakaConfig:
     path = config_path or default_config_path()
     if path.exists():
-        return load_config(path)
+        config = load_config(path)
+        if not Path(config.artifacts_dir).is_absolute():
+            config = SitakaConfig(
+                **{
+                    **config.model_dump(),
+                    "artifacts_dir": str(artifacts_dir()),
+                }
+            )
+        return config
+
     ensure_modeling_dataset()
     config = SitakaConfig(
         project_name="crimecast-enterprise",
         task="tabular_classification",
-        artifacts_dir=str(project_root() / "sitaka_artifacts"),
+        artifacts_dir=str(artifacts_dir()),
         data={
             "source": str(project_root() / "data" / "train_modeling.csv"),
             "format": "csv",
@@ -61,7 +77,7 @@ def load_or_create_config(config_path: Path | None = None) -> SitakaConfig:
             "max_rows": 15000,
         },
         mlflow={
-            "enabled": True,
+            "enabled": os.environ.get("MLFLOW_ENABLED", "true").lower() == "true",
             "experiment_name": "crimecast-cbo",
             "tracking_uri": f"file:{project_root() / 'mlruns'}",
         },
@@ -86,9 +102,10 @@ def run_local_train(config: SitakaConfig | None = None) -> SitakaRunSummary:
     cfg = config or load_or_create_config()
     ensure_modeling_dataset()
     result = TrainingService().train(cfg)
-    metrics_path = cfg.artifact_path / "metrics.json"
+    artifact_root = _resolve_artifacts_path(cfg)
+    metrics_path = artifact_root / "metrics.json"
     metrics = json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {}
-    report_path = cfg.artifact_path / "reports" / cfg.exploration.report_name
+    report_path = artifact_root / "reports" / cfg.exploration.report_name
     return SitakaRunSummary(
         mode="local",
         model_bundle_dir=result.model_bundle_dir,
@@ -100,13 +117,13 @@ def run_local_train(config: SitakaConfig | None = None) -> SitakaRunSummary:
 
 def run_local_evaluate(config: SitakaConfig | None = None) -> dict[str, float]:
     cfg = config or load_or_create_config()
-    return EvaluationService().evaluate(cfg).metrics
+    bundle = model_bundle_dir()
+    return EvaluationService().evaluate(cfg, bundle_dir=bundle).metrics
 
 
 def run_local_predict(records: list[dict[str, Any]], config: SitakaConfig | None = None) -> list[str]:
-    cfg = config or load_or_create_config()
-    bundle = cfg.artifact_path / "models" / "best_model"
-    if not bundle.exists():
+    bundle = model_bundle_dir()
+    if not bundle.exists() or not (bundle / "model.joblib").exists():
         raise FileNotFoundError(
             "No trained model bundle found. Run training from the Model Lab page first."
         )
@@ -115,7 +132,8 @@ def run_local_predict(records: list[dict[str, Any]], config: SitakaConfig | None
 
 def run_local_deploy(config: SitakaConfig | None = None, framework: str = "streamlit") -> Path:
     cfg = config or load_or_create_config()
-    result = DeploymentService().deploy(cfg, framework=framework)
+    bundle = model_bundle_dir()
+    result = DeploymentService().deploy(cfg, bundle_dir=bundle, framework=framework)
     return result.output_dir
 
 

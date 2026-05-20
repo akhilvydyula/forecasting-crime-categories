@@ -1,0 +1,13 @@
+{
+  "best_model": "linear",
+  "best_trial": 3,
+  "best_trial_value": 0.5330827774449952,
+  "best_params": {
+    "model_name": "linear",
+    "c": 2.39933633126035
+  },
+  "test_metrics": {
+    "accuracy": 0.8085,
+    "f1_macro": 0.5144106647680231
+  }
+}

@@ -5,10 +5,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from crimecast.data import EXCLUDED_FROM_MODELING, TARGET_COLUMN, load_crimecast_train, resolve_data_paths
+from crimecast.data import DATE_FORMAT, EXCLUDED_FROM_MODELING, TARGET_COLUMN, load_crimecast_train, resolve_data_paths
 
 
-def _parse_occurred_hour(time_value: float | int | str | None) -> float | np.nan:
+def _parse_occurred_hour(time_value: float | int | str | None) -> float:
     if pd.isna(time_value):
         return np.nan
     try:
@@ -37,10 +37,10 @@ def build_modeling_frame(raw: pd.DataFrame) -> pd.DataFrame:
     """Engineer features suitable for AutoML and executive analytics."""
     frame = raw.copy()
     frame["Date_Occurred"] = pd.to_datetime(
-        frame["Date_Occurred"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce"
+        frame["Date_Occurred"], format=DATE_FORMAT, errors="coerce"
     )
     frame["Date_Reported"] = pd.to_datetime(
-        frame["Date_Reported"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce"
+        frame["Date_Reported"], format=DATE_FORMAT, errors="coerce"
     )
     frame["occurred_year"] = frame["Date_Occurred"].dt.year
     frame["occurred_month"] = frame["Date_Occurred"].dt.month

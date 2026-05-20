@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from crimecast.data import TARGET_COLUMN
+from crimecast.data import DATE_FORMAT, TARGET_COLUMN
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,10 @@ class ExecutiveKpis:
     distinct_areas: int
 
 
+def _parse_dates(frame: pd.DataFrame, column: str) -> pd.Series:
+    return pd.to_datetime(frame[column], format=DATE_FORMAT, errors="coerce")
+
+
 def compute_executive_kpis(frame: pd.DataFrame) -> ExecutiveKpis:
     counts = frame[TARGET_COLUMN].value_counts(normalize=True)
     top_category = str(counts.index[0])
@@ -32,8 +36,8 @@ def compute_executive_kpis(frame: pd.DataFrame) -> ExecutiveKpis:
 
     report_lag = np.nan
     if {"Date_Reported", "Date_Occurred"}.issubset(frame.columns):
-        reported = pd.to_datetime(frame["Date_Reported"], errors="coerce")
-        occurred = pd.to_datetime(frame["Date_Occurred"], errors="coerce")
+        reported = _parse_dates(frame, "Date_Reported")
+        occurred = _parse_dates(frame, "Date_Occurred")
         report_lag = float((reported - occurred).dt.days.mean())
 
     weapon_rate = float(frame["Weapon_Used_Code"].notna().mean()) if "Weapon_Used_Code" in frame else 0.0
@@ -85,7 +89,7 @@ def area_risk_table(frame: pd.DataFrame, top_n: int = 15) -> pd.DataFrame:
 
 def temporal_profile(frame: pd.DataFrame) -> pd.DataFrame:
     working = frame.copy()
-    working["Date_Occurred"] = pd.to_datetime(working["Date_Occurred"], errors="coerce")
+    working["Date_Occurred"] = _parse_dates(working, "Date_Occurred")
     working["month"] = working["Date_Occurred"].dt.to_period("M").astype(str)
     profile = (
         working.groupby(["month", TARGET_COLUMN], dropna=False)

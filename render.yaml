@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: crimecast-cbo-console
+    runtime: python
+    plan: free
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python scripts/bootstrap_render.py
+    startCommand: bash scripts/start.sh
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PYTHONPATH
+        value: src
+      - key: SITAKA_ARTIFACTS_DIR
+        value: artifacts
+      - key: MLFLOW_ENABLED
+        value: "false"
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: "false"

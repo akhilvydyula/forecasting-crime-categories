@@ -1,6 +1,6 @@
 project_name: crimecast-enterprise
 task: tabular_classification
-artifacts_dir: sitaka_artifacts
+artifacts_dir: artifacts
 data:
   source: data/train_modeling.csv
   format: csv

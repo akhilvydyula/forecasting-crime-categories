@@ -5,21 +5,32 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 
-# Large competition files (download via Kaggle CLI)
+# Large competition files (download via Kaggle CLI locally)
 data/train.csv
 data/test.csv
+data/train.csv.zip
+data/*.zip
+
+# Generated locally; demo train is committed for Render
 data/train_modeling.csv
 
-# Keep sample submission for smoke tests
+!data/train_demo.csv
+
+# Shipped model bundle for Render (committed)
+!artifacts/models/best_model/model.joblib
+!artifacts/models/best_model/metadata.json
+
+# Keep sample submission
 !data/sample.csv
 
-# SITAKA outputs
+# Ephemeral SITAKA outputs (local training)
 sitaka_artifacts/
 sitaka_deployment/
 mlruns/
 *.db
+ruvector.db
 
-# Streamlit
+# Streamlit secrets
 .streamlit/secrets.toml
 
 # OS / IDE

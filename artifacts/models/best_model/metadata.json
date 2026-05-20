@@ -1,0 +1,26 @@
+{
+  "project_name": "crimecast-enterprise",
+  "task": "tabular_classification",
+  "target": "Crime_Category",
+  "metric_name": "f1_macro",
+  "metric_value": 0.5144106647680231,
+  "features": [
+    "Latitude",
+    "Longitude",
+    "Area_ID",
+    "Area_Name",
+    "Part 1-2",
+    "Victim_Age",
+    "Victim_Sex",
+    "Victim_Descent",
+    "occurred_year",
+    "occurred_month",
+    "occurred_day_of_week",
+    "occurred_hour",
+    "report_lag_bucket",
+    "has_weapon",
+    "victim_age_missing",
+    "premise_group"
+  ],
+  "model_name": "linear"
+}

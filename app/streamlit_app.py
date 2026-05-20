@@ -24,7 +24,13 @@ from crimecast.analytics import (  # noqa: E402
     compute_executive_kpis,
     temporal_profile,
 )
-from crimecast.data import TARGET_COLUMN, load_crimecast_train, resolve_data_paths  # noqa: E402
+from crimecast.data import (  # noqa: E402
+    TARGET_COLUMN,
+    is_demo_dataset,
+    load_crimecast_train,
+    model_bundle_dir,
+    resolve_data_paths,
+)
 from crimecast.features import build_modeling_frame, prepare_features_for_sitaka  # noqa: E402
 from crimecast.sitaka_bridge import (  # noqa: E402
     default_config_path,
@@ -46,6 +52,18 @@ SITAKA_URL = "https://pypi.org/project/sitaka-api/"
 @st.cache_data(show_spinner="Loading CrimeCast training data…")
 def cached_train() -> pd.DataFrame:
     return load_crimecast_train()
+
+
+def ensure_data_loaded() -> pd.DataFrame | None:
+    try:
+        return cached_train()
+    except FileNotFoundError as exc:
+        st.error(str(exc))
+        st.info(
+            "For local development, run:\n\n"
+            "`kaggle competitions download -c crime-cast-forecasting-crime-categories -f train.csv -p data`"
+        )
+        return None
 
 
 @st.cache_data
@@ -95,7 +113,11 @@ def page_executive() -> None:
         "Chief Business Officer view — category mix, reporting latency, and weapon involvement "
         "for operational risk committees."
     )
-    frame = cached_train()
+    frame = ensure_data_loaded()
+    if frame is None:
+        return
+    if is_demo_dataset():
+        st.info("Showing bundled demo dataset (5,000 incidents). Upload full `train.csv` locally for 20k rows.")
     kpis = compute_executive_kpis(frame)
     render_kpi_cards(kpis)
 
@@ -131,7 +153,9 @@ def page_executive() -> None:
 def page_geographic() -> None:
     st.title("Geographic Intelligence")
     st.caption("Map incident density and rank areas by composite violent + fraud risk.")
-    frame = cached_train()
+    frame = ensure_data_loaded()
+    if frame is None:
+        return
     map_df = frame.dropna(subset=["Latitude", "Longitude"]).copy()
     map_df["size"] = 4
     fig_map = px.scatter_mapbox(
@@ -149,24 +173,20 @@ def page_geographic() -> None:
     st.plotly_chart(fig_map, use_container_width=True)
 
     risk = area_risk_table(frame)
+    display = risk.copy()
+    display["violent_rate"] = display["violent_rate"].map(lambda v: f"{v:.1%}")
+    display["fraud_rate"] = display["fraud_rate"].map(lambda v: f"{v:.1%}")
+    display["risk_score"] = display["risk_score"].map(lambda v: f"{v:.3f}")
+    display["avg_victim_age"] = display["avg_victim_age"].map(lambda v: f"{v:.1f}")
     st.subheader("Area risk ranking (composite score)")
-    st.dataframe(
-        risk.style.format(
-            {
-                "violent_rate": "{:.1%}",
-                "fraud_rate": "{:.1%}",
-                "risk_score": "{:.3f}",
-                "avg_victim_age": "{:.1f}",
-            }
-        ),
-        use_container_width=True,
-        hide_index=True,
-    )
+    st.dataframe(display, use_container_width=True, hide_index=True)
 
 
 def page_temporal() -> None:
     st.title("Temporal & Operational Patterns")
-    frame = cached_train()
+    frame = ensure_data_loaded()
+    if frame is None:
+        return
     profile = temporal_profile(frame)
     fig = px.area(
         profile,
@@ -259,7 +279,9 @@ def page_model_lab() -> None:
 
     if run_train:
         trials = st.session_state.get("n_trials", config.automl.n_trials)
-        with st.spinner(f"Running Optuna search ({trials} trials)…"):
+        config.automl.n_trials = min(trials, 8)
+        config.automl.max_rows = min(config.automl.max_rows or 15000, 8000)
+        with st.spinner(f"Running Optuna search ({config.automl.n_trials} trials)…"):
             summary = run_local_train(config)
         st.session_state["last_train"] = summary
         st.success("Training complete.")
@@ -270,8 +292,8 @@ def page_model_lab() -> None:
             metrics = run_local_evaluate(config)
         st.metric("Hold-out metrics", json.dumps(metrics))
 
-    bundle_dir = config.artifact_path / "models" / "best_model"
-    if bundle_dir.exists():
+    bundle_dir = model_bundle_dir()
+    if bundle_dir.exists() and (bundle_dir / "model.joblib").exists():
         _, metadata = load_model_bundle(bundle_dir)
         st.subheader("Registered model metadata")
         st.json(

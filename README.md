@@ -29,6 +29,10 @@ python scripts/prepare_data.py
 streamlit run app/streamlit_app.py
 ```
 
+### Deploy to Render
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md#render-deployment) or use the included `render.yaml` Blueprint.
+
 Optional full SITAKA CLI pipeline:
 
 ```powershell
