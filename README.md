@@ -1,5 +1,12 @@
 # CrimeCast CBO Intelligence Console
 
+[![License: MIT](https://img.shields.io/github/license/akhilvydyula/forecasting-crime-categories)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Kaggle](https://img.shields.io/badge/Kaggle-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/crime-cast-forecasting-crime-categories)
+[![GitHub stars](https://img.shields.io/github/stars/akhilvydyula/forecasting-crime-categories?style=social)](https://github.com/akhilvydyula/forecasting-crime-categories/stargazers)
+[![Open Source](https://img.shields.io/badge/open%20source-welcome-brightgreen)](#open-source)
+
 Enterprise Streamlit application for advanced operational-risk analysis on the [CrimeCast: Forecasting Crime Categories](https://www.kaggle.com/competitions/crime-cast-forecasting-crime-categories) Kaggle competition, powered by **[SITAKA API](https://pypi.org/project/sitaka-api/)** for AutoML training, EDA, MLflow tracking, and model governance.
 
 Built for **Chief Business Officer (CBO)** and enterprise risk forums at large banking institutions—translating municipal crime incident patterns into geographic, temporal, and predictive intelligence for physical security and fraud-adjacent planning.
@@ -77,10 +84,19 @@ This project uses [sitaka-api](https://pypi.org/project/sitaka-api/) for:
 
 Install: `pip install sitaka-api[deploy,parquet]`
 
+## Open source
+
+This repository is **open source** under the [MIT License](LICENSE). Stars, issues, and pull requests are welcome — they help others discover the project and improve it for the community.
+
+### How you can help
+
+- **Star** the repo if you find it useful — it helps visibility on GitHub Explore and search.
+- **Open an issue** for bugs, ideas, or questions.
+- **Submit a pull request** with a focused change and a clear description.
+- **Share** the project with data scientists working on public-safety or risk analytics.
+
+Maintained by [Akhil Vydyula](https://github.com/akhilvydyula) as part of the Skills Marathon ML portfolio.
+
 ## License
 
-MIT (application code). Kaggle competition data subject to [competition rules](https://www.kaggle.com/competitions/crime-cast-forecasting-crime-categories/rules).
-
-## Author
-
-Veliation AI — operational-risk analytics on public safety data for enterprise demonstrations.
+Application code is released under the [MIT License](LICENSE). Kaggle competition data is subject to [competition rules](https://www.kaggle.com/competitions/crime-cast-forecasting-crime-categories/rules).
