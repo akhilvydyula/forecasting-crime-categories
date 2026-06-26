@@ -2,7 +2,7 @@
 sitaka-api[deploy,parquet]>=0.1.0
 
 # Pin sklearn so shipped model.joblib loads without version warnings
-scikit-learn==1.7.2
+scikit-learn==1.9.0
 
 # Analytics application
 streamlit>=1.33
